@@ -7,13 +7,12 @@ from num2words import num2words
 
 
 class TestEN_US(unittest.TestCase):
-    """Test inverse text normalization for numbers.
-    """
+    """Test inverse text normalization for numbers."""
 
     def test_en_us(self):
-        """Test valid en-US input.
-        """
-        test_trials = ("two",
+        """Test valid en-US input."""
+        test_trials = (
+            "two",
             "twelve",
             "zero",
             "one hundred and two",
@@ -41,8 +40,12 @@ class TestEN_US(unittest.TestCase):
             "a thousand and fifty four",
             "three sixty",
             "four twelve",
-            "three sixty five")
-        test_targets = (2,
+            "three sixty five",
+            "24 million 3 hundred and 12",
+            "three dozen",
+        )
+        test_targets = (
+            2,
             12,
             0,
             102,
@@ -70,42 +73,41 @@ class TestEN_US(unittest.TestCase):
             1054,
             360,
             412,
-            365
-            )
+            365,
+            24000312,
+            36,
+        )
         tests = zip(test_trials, test_targets)
 
         for (trial, target) in tests:
             result = words2num(trial)
-            assert result == target,\
-                   "'{0}' -> {1} != {2}".format(trial, result, target)
+            assert result == target, "'{0}' -> {1} != {2}".format(trial, result, target)
 
-
-    @unittest.skipIf(sys.version_info[0] < 3, 'python2 fails at concurrency')
+    @unittest.skipIf(sys.version_info[0] < 3, "python2 fails at concurrency")
     def test_en_us_auto(self):
         """Test many (valid) inputs sampled from a wide range.
         Inputs are created by num2word.
         """
+
         def inv_test(n):
             words = num2words(n)
             result = words2num(words)
-            assert n == result,\
-                   "{0} ({1}) inverted as {3}".format(n, words, result)
+            assert n == result, "{0} ({1}) inverted as {3}".format(n, words, result)
 
         _step = 64
         for start_i in random.sample(range(9999999999999), 64):
-            plist = [Process(target=inv_test, args=(n,))\
-                     for n in range(start_i, start_i + _step)]
+            plist = [Process(target=inv_test, args=(n,)) for n in range(start_i, start_i + _step)]
             for p in plist:
                 p.start()
             for p in plist:
                 p.join()
 
-
     def test_en_us_neg(self):
         """Test invalid en-US input.
         Ensure that invalid number sequences raise NumberParseException.
         """
-        tests = ("one one",
+        tests = (
+            "one one",
             "one one one",
             "one one one one",
             "one one one one one",
@@ -125,18 +127,18 @@ class TestEN_US(unittest.TestCase):
             "a five hundred",
             "a six thousand",
             "six thousand a hundred and twenty",
-            "nineteen twenty")
+            "nineteen twenty",
+        )
 
         for test in tests:
             try:
                 value = words2num(test)
-                assert False,\
-                       "parsed invalid input '{0}' as {1}".format(test, value)
+                assert False, "parsed invalid input '{0}' as {1}".format(test, value)
             except NumberParseException:
                 pass
             except ValueError:
                 pass
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
